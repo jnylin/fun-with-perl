@@ -1,30 +1,30 @@
 #!/usr/bin/env perl
+#
+# Cleans a given HTML stanza from style attributes and span elements
+# »» is supposed to be a list item and is replaced with <li>
 
 use strict;
 use warnings;
 
-my $f_htmlStanza = 'läkare.html';
-open(my $fh, '<', $f_htmlStanza)
-	or die "Could not open file '$f_htmlStanza' $!";
-
 my $str_html = "";
 my $nr_list_items = 0;
 
-while (<$fh>) {
-	my $str = $_;
+while (<>) {
+	my $line = $_;
 
 	# Ta bort style-attribut
-	while ( $str =~ s/(<.*) style="[^>]*"([>, ])/$1$2/ ) {};
+	while ( $line =~ s/(<.*) style="[^>]*"([>, ])/$1$2/ ) {};
 
-	# Fixa listor (<li> behöver inte stängas)
-	# <ul> innan första och </ul> efter sista
-	while ( $str =~ s/»» (.*)/<li>$1/ ) {
+	# Fixa listor 
+	# öppna med ul
+	while ( $line =~ s/»» (.*)/<li>$1/ ) {
 		if ( $nr_list_items == 0 ) {
 			$str_html .= '<ul>';
 			$nr_list_items++;
 		}
 	}
-	unless ( $str =~ /<li>/ ) {
+	# stäng ul efter sista li
+	unless ( $line =~ /<li>/ ) {
 		if ( $nr_list_items > 0 ) {
 			$str_html .= '</ul>';
 			$nr_list_items = 0;
@@ -32,12 +32,11 @@ while (<$fh>) {
 	}
 
 	# Ta bort <span>-element
-	$str =~ s/<\/{0,1}span>//g;
+	$line =~ s/<\/{0,1}span>//g;
 
-	#Skriv resultatet
-	$str_html .= $str;
+	$str_html .= $line;
 }
 
-print $nr_list_items;
+# Skriv resultatet
 print $str_html;
 
